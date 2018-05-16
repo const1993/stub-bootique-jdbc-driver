@@ -22,31 +22,33 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class StubResultSet implements ResultSet {
 
-    private int row;
-    private Map<String, Object> fields = new LinkedHashMap<>();
-    private boolean nextRow = false;
+    private int row = -1;
+    private Map<Integer, String> fields = new LinkedHashMap<>();
+    private Map<Integer, Map<String, Object>> rows = new HashMap<>();
+
 
     public StubResultSet() {
     }
 
-    public StubResultSet(int row, Map fields) {
-        this.row = row;
+    public StubResultSet(Map<Integer, String> fields, Map<Integer, Map<String, Object>> rows) {
+        this.rows = rows;
         this.fields = fields;
-        this.nextRow = true;
     }
 
     @Override
     public boolean next() throws SQLException {
-        if (nextRow) {
-            nextRow = false;
-            return true;
+        this.row++;
+        if (this.rows.isEmpty()) {
+            return false;
+        } else {
+            return this.row < this.rows.size();
         }
-        return nextRow;
     }
 
     @Override
@@ -61,11 +63,9 @@ public class StubResultSet implements ResultSet {
 
     @Override
     public String getString(int columnIndex) throws SQLException {
-        if (columnIndex == 0) {
-            return null;
-        }
-        Object[] columns = fields.values().toArray();
-        return columns[columnIndex - 1].toString();
+
+        Object[] columns = this.fields.values().toArray();
+        return columnIndex != 0 && columns.length >= columnIndex ? (this.rows.get(this.row)).get(this.fields.get(columnIndex)).toString() : null;
     }
 
     @Override
@@ -85,7 +85,19 @@ public class StubResultSet implements ResultSet {
 
     @Override
     public int getInt(int columnIndex) throws SQLException {
-        return 0;
+//        if (columnIndex != 0 && this.fields.size() >= columnIndex ) {
+//            Map<String, Object> stringObjectMap = this.rows.get(this.row);
+//            Object object = stringObjectMap.get(this.fields.get(columnIndex));
+//            if (object instanceof Integer) {
+//                return (int) object;
+//            }
+//
+////            if (object instanceof Map) {
+////                Map map = (Map) object;
+////                return (int )map.get(map.size() - 1);
+////            }
+//        }
+        return row;
     }
 
     @Override
@@ -115,11 +127,11 @@ public class StubResultSet implements ResultSet {
 
     @Override
     public Date getDate(int columnIndex) throws SQLException {
-        if (columnIndex == 0) {
+        if (columnIndex == 0 || columnIndex > fields.size()) {
             return null;
         }
-        Object[] columns = fields.values().toArray();
-        return Date.valueOf((LocalDate) columns[columnIndex - 1]);
+
+        return Date.valueOf((LocalDate)rows.get(row).get(fields.get(columnIndex)));
     }
 
     @Override
@@ -199,7 +211,7 @@ public class StubResultSet implements ResultSet {
 
     @Override
     public Date getDate(String columnLabel) throws SQLException {
-        return (Date) fields.get(columnLabel);
+        return Date.valueOf((LocalDate)rows.get(row).get(columnLabel));
     }
 
     @Override

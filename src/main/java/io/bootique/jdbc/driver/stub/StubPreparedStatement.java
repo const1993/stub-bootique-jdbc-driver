@@ -23,10 +23,7 @@ import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 public class StubPreparedStatement extends StubStatement implements PreparedStatement {
 
@@ -35,11 +32,8 @@ public class StubPreparedStatement extends StubStatement implements PreparedStat
     private String query;
 
     public StubPreparedStatement(String query) {
-
         this.query = query;
-        objects.put("ARTIST", createArtist("Picasso"));
-        objects.put("PAINTING", createPainting("BLACK SQARE"));
-        objects.put("GALLERY", createGallery("Armitage"));
+        generateData();
     }
 
     @Override
@@ -57,6 +51,7 @@ public class StubPreparedStatement extends StubStatement implements PreparedStat
 //        }
 //
 //        return objects.get(table.toUpperCase());
+
         return executeQuery(query);
     }
 
@@ -332,7 +327,7 @@ public class StubPreparedStatement extends StubStatement implements PreparedStat
 
     @Override
     public ResultSet executeQuery(String sql) throws SQLException {
-
+//        this.generateData();
         String table = "";
         String[] words = sql.split(" ");
 
@@ -349,6 +344,7 @@ public class StubPreparedStatement extends StubStatement implements PreparedStat
                 break;
             }
         }
+
         ResultSet resultSet = objects.get(table.toUpperCase());
         return resultSet != null ? resultSet : new StubResultSet();
     }
@@ -568,27 +564,65 @@ public class StubPreparedStatement extends StubStatement implements PreparedStat
         return false;
     }
 
-    private ResultSet createArtist(String name) {
-        Map<String, Object> artist = new LinkedHashMap<>();
-        artist.put("DATE_OF_BIRTH", LocalDate.now());
-        artist.put("NAME", name);
-        artist.put("ID", "asdasd");
-        return new StubResultSet(1, artist);
+    private Map<Integer, Map<String, Object>> createArtists(String name) {
+
+        Map<Integer, Map<String, Object>> artists = new HashMap();
+
+        for (int i = 1; i <= 10; i++) {
+            Map<String, Object> artist = new LinkedHashMap<>();
+            artist.put("DATE_OF_BIRTH", LocalDate.now());
+            artist.put("NAME", name);
+            artist.put("ID", i);
+            artists.put(i - 1 , artist);
+        }
+
+        return artists;
     }
 
-    private ResultSet createGallery(String name) {
-        Map<String, Object> galery = new LinkedHashMap<>();
-        galery.put("NAME", name);
-        galery.put("ID", "asdasd");
-        return new StubResultSet(1, galery);
+    private Map<Integer, Map<String, Object>> createGallerys(String name) {
+        Map<String, Object> gallery = new LinkedHashMap<>();
+        gallery.put("NAME", name);
+        gallery.put("ID", 1);
+        Map<Integer, Map<String, Object>> gallerys = new HashMap<>();
+        gallerys.put(0, gallery);
+        return gallerys;
     }
 
-    private ResultSet createPainting(String name) {
-        Map<String, Object> painitng = new LinkedHashMap<>();
-        painitng.put("NAME", name);
-        painitng.put("ARTIST", createArtist("picasso"));
-        painitng.put("GALERY", createGallery("sharashka"));
-        painitng.put("ID", "asdasd");
-        return new StubResultSet(1, painitng);
+    private Map<Integer, Map<String, Object>> createPaintings(String name) {
+        Map gallery = createGallerys("c").get(0);
+        Map<Integer, Map<String, Object>> paintings = new HashMap<>();
+
+        Map picasso = createArtists("a").get(0);
+        for (int i = 1; i <= 100; i++) {
+            Map<String, Object> painitng = new LinkedHashMap<>();
+            painitng.put("NAME", name);
+            painitng.put("ARTIST", picasso);
+            painitng.put("GALLERY", gallery);
+            painitng.put("ID", i);
+            paintings.put(i - 1 , painitng);
+        }
+        return paintings;
+    }
+
+    private void generateData() {
+        Map artistFields = new HashMap();
+        artistFields.put(3, "ID");
+        artistFields.put(2, "NAME");
+        artistFields.put(1, "DATE_OF_BIRTH");
+
+        Map paintingFields = new HashMap();
+        paintingFields.put(4, "ID");
+        paintingFields.put(3, "ARTIST_ID");
+        paintingFields.put(2, "GALLERY_ID");
+        paintingFields.put(1, "NAME");
+
+
+        Map galleryFields = new HashMap();
+        galleryFields.put(2, "ID");
+        galleryFields.put(1, "NAME");
+
+        objects.put("ARTIST", new StubResultSet(artistFields, createArtists("a")));
+        objects.put("PAINTING", new StubResultSet(paintingFields, createPaintings("b")));
+        objects.put("GALLERY", new StubResultSet(galleryFields, createGallerys("Armitage")));
     }
 }
