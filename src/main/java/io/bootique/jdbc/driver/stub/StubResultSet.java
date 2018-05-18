@@ -31,7 +31,7 @@ public class StubResultSet implements ResultSet {
     private int row = -1;
     private Map<Integer, String> fields = new LinkedHashMap<>();
     private Map<Integer, Map<String, Object>> rows = new HashMap<>();
-
+    private String prefetch;
 
     public StubResultSet() {
     }
@@ -43,11 +43,15 @@ public class StubResultSet implements ResultSet {
 
     @Override
     public boolean next() throws SQLException {
-        this.row++;
+        ++this.row;
         if (this.rows.isEmpty()) {
             return false;
         } else {
-            return this.row < this.rows.size();
+            boolean hasNext = this.row < this.rows.size();
+            if (!hasNext) {
+                row = -1;
+            }
+            return hasNext;
         }
     }
 
@@ -65,7 +69,10 @@ public class StubResultSet implements ResultSet {
     public String getString(int columnIndex) throws SQLException {
 
         Object[] columns = this.fields.values().toArray();
-        return columnIndex != 0 && columns.length >= columnIndex ? (this.rows.get(this.row)).get(this.fields.get(columnIndex)).toString() : null;
+
+        return columnIndex != 0 && columns.length >= columnIndex ? (this.rows.get(this.row)).get(this.fields.get(columnIndex)).toString() :
+                "string";
+//                ((Map)(this.rows.get(this.row)).get(prefetch)).get(columnIndex - columns.length).toString() ;
     }
 
     @Override
@@ -128,7 +135,7 @@ public class StubResultSet implements ResultSet {
     @Override
     public Date getDate(int columnIndex) throws SQLException {
         if (columnIndex == 0 || columnIndex > fields.size()) {
-            return null;
+            return Date.valueOf(LocalDate.now());
         }
 
         return Date.valueOf((LocalDate)rows.get(row).get(fields.get(columnIndex)));

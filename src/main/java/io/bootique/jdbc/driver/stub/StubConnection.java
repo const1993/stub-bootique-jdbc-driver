@@ -1,9 +1,8 @@
 package io.bootique.jdbc.driver.stub;
 
 import java.sql.*;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Properties;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.concurrent.Executor;
 
 public class StubConnection implements Connection {
@@ -18,6 +17,7 @@ public class StubConnection implements Connection {
     private int timeout;
 
     public static StubConnection getInstance() {
+        DataObjects.getObjects();
         return new StubConnection();
     }
 
@@ -255,4 +255,10 @@ public class StubConnection implements Connection {
     public String getEncoding() {
         return "UTF-8";
     }
+
+
+
+
+
+
 }
